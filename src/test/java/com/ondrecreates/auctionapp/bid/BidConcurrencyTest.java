@@ -50,7 +50,7 @@ class BidConcurrencyTest {
         CountDownLatch startLatch = new CountDownLatch(1);
         CountDownLatch doneLatch = new CountDownLatch(threadCount);
         AtomicInteger successCount = new AtomicInteger();
-        AtomicInteger conflictCount = new AtomicInteger();
+        AtomicInteger rejectedCount = new AtomicInteger();
 
         for (int i = 0; i < threadCount; i++) {
             long bidderId = i + 1;
@@ -60,8 +60,11 @@ class BidConcurrencyTest {
                     startLatch.await();
                     bidService.placeBid(auctionId, bidderId, new BigDecimal("110.00"));
                     successCount.incrementAndGet();
-                } catch (ConcurrencyFailureException e) {
-                    conflictCount.incrementAndGet();
+                } catch (ConcurrencyFailureException | BidTooLowException e) {
+                    // A thread that starts its read after the winner already committed sees the
+                    // new currentPrice and correctly gets rejected by validation instead of a
+                    // lock conflict - both mean "you didn't win the race" for this assertion.
+                    rejectedCount.incrementAndGet();
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
                 } finally {
@@ -77,7 +80,7 @@ class BidConcurrencyTest {
 
         assertThat(finished).isTrue();
         assertThat(successCount.get()).isEqualTo(1);
-        assertThat(conflictCount.get()).isEqualTo(threadCount - 1);
+        assertThat(rejectedCount.get()).isEqualTo(threadCount - 1);
 
         Auction reloaded = auctionRepository.findById(auctionId).orElseThrow();
         assertThat(reloaded.getCurrentPrice()).isEqualByComparingTo("110.00");
