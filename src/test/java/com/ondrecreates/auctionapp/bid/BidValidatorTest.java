@@ -43,7 +43,7 @@ class BidValidatorTest {
         return Auction.builder()
                 .id(1L)
                 .title("Test Auction")
-                .sellerId(1L)
+                .sellerId("seller@example.com")
                 .startingPrice(new BigDecimal("100.00"))
                 .currentPrice(new BigDecimal("100.00"))
                 .minIncrement(new BigDecimal("5.00"))

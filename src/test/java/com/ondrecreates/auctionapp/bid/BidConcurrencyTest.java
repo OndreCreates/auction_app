@@ -34,7 +34,7 @@ class BidConcurrencyTest {
     void onlyOneBidWinsWhenMultipleUsersBidTheSameAmountConcurrently() throws InterruptedException {
         Auction auction = auctionRepository.save(Auction.builder()
                 .title("Concurrency Test Auction")
-                .sellerId(1L)
+                .sellerId("seller@example.com")
                 .startingPrice(new BigDecimal("100.00"))
                 .currentPrice(new BigDecimal("100.00"))
                 .minIncrement(new BigDecimal("5.00"))
@@ -53,7 +53,7 @@ class BidConcurrencyTest {
         AtomicInteger rejectedCount = new AtomicInteger();
 
         for (int i = 0; i < threadCount; i++) {
-            long bidderId = i + 1;
+            String bidderId = "bidder" + i + "@example.com";
             executor.submit(() -> {
                 readyLatch.countDown();
                 try {

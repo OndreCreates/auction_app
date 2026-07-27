@@ -24,7 +24,7 @@ public class BidService {
     // translated to 409 in GlobalExceptionHandler. Because the bid insert and the auction price
     // update share this one @Transactional, a losing bid's row is rolled back too - no orphan bids.
     @Transactional
-    public Bid placeBid(Long auctionId, Long bidderId, BigDecimal amount) {
+    public Bid placeBid(Long auctionId, String bidderId, BigDecimal amount) {
         Auction auction = auctionService.getById(auctionId);
 
         bidValidator.validate(auction, amount);

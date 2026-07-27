@@ -11,7 +11,6 @@ import java.time.LocalDateTime;
 public record CreateAuctionRequest(
         @NotBlank String title,
         String description,
-        @NotNull Long sellerId,
         @NotNull @Positive BigDecimal startingPrice,
         @NotNull @Positive BigDecimal minIncrement,
         @NotNull LocalDateTime startTime,

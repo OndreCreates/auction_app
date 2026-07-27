@@ -33,8 +33,9 @@ public class Bid {
     @Column(name = "auction_id", nullable = false)
     private Long auctionId;
 
+    // Email from the JWT sub claim (identity_server_app), not a numeric id.
     @Column(name = "bidder_id", nullable = false)
-    private Long bidderId;
+    private String bidderId;
 
     @Column(nullable = false, precision = 12, scale = 2)
     private BigDecimal amount;

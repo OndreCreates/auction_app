@@ -10,7 +10,7 @@ public record AuctionResponse(
         Long id,
         String title,
         String description,
-        Long sellerId,
+        String sellerId,
         BigDecimal startingPrice,
         BigDecimal minIncrement,
         BigDecimal currentPrice,

@@ -48,7 +48,7 @@ class AuctionCloseSchedulerTest {
     private Auction activeAuction(LocalDateTime startTime, LocalDateTime endTime, BigDecimal currentPrice) {
         return Auction.builder()
                 .title("Scheduler Test Auction")
-                .sellerId(1L)
+                .sellerId("seller@example.com")
                 .startingPrice(new BigDecimal("100.00"))
                 .currentPrice(currentPrice)
                 .minIncrement(new BigDecimal("5.00"))

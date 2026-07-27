@@ -39,8 +39,9 @@ public class Auction {
 
     private String description;
 
+    // Email from the JWT sub claim (identity_server_app), not a numeric id.
     @Column(name = "seller_id", nullable = false)
-    private Long sellerId;
+    private String sellerId;
 
     @Column(name = "starting_price", nullable = false, precision = 12, scale = 2)
     private BigDecimal startingPrice;

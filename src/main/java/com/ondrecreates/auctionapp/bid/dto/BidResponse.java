@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 public record BidResponse(
         Long id,
         Long auctionId,
-        Long bidderId,
+        String bidderId,
         BigDecimal amount,
         LocalDateTime createdAt
 ) {

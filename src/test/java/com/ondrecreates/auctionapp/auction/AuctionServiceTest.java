@@ -32,7 +32,7 @@ class AuctionServiceTest {
     void create_setsCurrentPriceToStartingPriceAndStatusActive() {
         Auction auction = Auction.builder()
                 .title("Vintage Camera")
-                .sellerId(1L)
+                .sellerId("seller@example.com")
                 .startingPrice(new BigDecimal("100.00"))
                 .minIncrement(new BigDecimal("5.00"))
                 .startTime(LocalDateTime.now())

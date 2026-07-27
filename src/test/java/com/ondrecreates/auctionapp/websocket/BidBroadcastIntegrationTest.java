@@ -45,7 +45,7 @@ class BidBroadcastIntegrationTest {
     void broadcastsNewBidToAuctionTopic() throws Exception {
         Auction auction = auctionRepository.save(Auction.builder()
                 .title("Broadcast Test Auction")
-                .sellerId(1L)
+                .sellerId("seller@example.com")
                 .startingPrice(new BigDecimal("100.00"))
                 .currentPrice(new BigDecimal("100.00"))
                 .minIncrement(new BigDecimal("5.00"))
@@ -88,13 +88,13 @@ class BidBroadcastIntegrationTest {
         // No synchronous way to know the broker registered the subscription; give it a moment.
         Thread.sleep(200);
 
-        bidService.placeBid(auction.getId(), 42L, new BigDecimal("110.00"));
+        bidService.placeBid(auction.getId(), "bidder@example.com", new BigDecimal("110.00"));
 
         BidResponse message = receivedMessages.poll(5, TimeUnit.SECONDS);
 
         assertThat(message).isNotNull();
         assertThat(message.auctionId()).isEqualTo(auction.getId());
-        assertThat(message.bidderId()).isEqualTo(42L);
+        assertThat(message.bidderId()).isEqualTo("bidder@example.com");
         assertThat(message.amount()).isEqualByComparingTo("110.00");
 
         session.disconnect();
