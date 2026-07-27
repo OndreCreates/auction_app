@@ -1,6 +1,8 @@
 package com.ondrecreates.auctionapp.common;
 
 import com.ondrecreates.auctionapp.auction.AuctionNotFoundException;
+import com.ondrecreates.auctionapp.bid.AuctionNotActiveException;
+import com.ondrecreates.auctionapp.bid.BidTooLowException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,6 +23,12 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiError> handleNotFound(AuctionNotFoundException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(new ApiError(Instant.now(), 404, "Not Found", ex.getMessage(), null));
+    }
+
+    @ExceptionHandler({BidTooLowException.class, AuctionNotActiveException.class})
+    public ResponseEntity<ApiError> handleInvalidBid(RuntimeException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(new ApiError(Instant.now(), 400, "Bad Request", ex.getMessage(), null));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
