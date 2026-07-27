@@ -8,6 +8,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -59,6 +60,12 @@ public class Auction {
 
     @Column(name = "end_time", nullable = false)
     private LocalDateTime endTime;
+
+    // Optimistic lock: concurrent bids race to update the same row; the loser gets
+    // ObjectOptimisticLockingFailureException instead of silently overwriting a newer bid.
+    @Version
+    @Column(nullable = false)
+    private Long version;
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
