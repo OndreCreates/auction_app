@@ -2,9 +2,8 @@ package com.ondrecreates.auctionapp.bid;
 
 import com.ondrecreates.auctionapp.auction.Auction;
 import com.ondrecreates.auctionapp.auction.AuctionService;
-import com.ondrecreates.auctionapp.bid.dto.BidResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,7 +16,7 @@ public class BidService {
     private final BidRepository bidRepository;
     private final AuctionService auctionService;
     private final BidValidator bidValidator;
-    private final SimpMessagingTemplate messagingTemplate;
+    private final ApplicationEventPublisher eventPublisher;
 
     // Concurrency safety relies on Auction.version (optimistic locking), not a try/catch here.
     // The version check runs as part of the UPDATE at commit time, after this method returns,
@@ -39,7 +38,7 @@ public class BidService {
 
         auction.setCurrentPrice(amount);
 
-        messagingTemplate.convertAndSend("/topic/auctions/" + auctionId, BidResponse.from(savedBid));
+        eventPublisher.publishEvent(new BidPlacedEvent(savedBid));
 
         return savedBid;
     }
