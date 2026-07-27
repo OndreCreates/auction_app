@@ -16,6 +16,11 @@ public class BidService {
     private final AuctionService auctionService;
     private final BidValidator bidValidator;
 
+    // Concurrency safety relies on Auction.version (optimistic locking), not a try/catch here.
+    // The version check runs as part of the UPDATE at commit time, after this method returns,
+    // so a losing bid surfaces as ConcurrencyFailureException from the transaction proxy and is
+    // translated to 409 in GlobalExceptionHandler. Because the bid insert and the auction price
+    // update share this one @Transactional, a losing bid's row is rolled back too - no orphan bids.
     @Transactional
     public Bid placeBid(Long auctionId, Long bidderId, BigDecimal amount) {
         Auction auction = auctionService.getById(auctionId);
