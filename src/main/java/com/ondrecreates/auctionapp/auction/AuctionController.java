@@ -15,6 +15,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/auctions")
 @RequiredArgsConstructor
@@ -40,5 +42,10 @@ public class AuctionController {
     @GetMapping("/{id}")
     public AuctionResponse getById(@PathVariable Long id) {
         return AuctionResponse.from(auctionService.getById(id));
+    }
+
+    @GetMapping
+    public List<AuctionResponse> getAll() {
+        return auctionService.getAll().stream().map(AuctionResponse::from).toList();
     }
 }

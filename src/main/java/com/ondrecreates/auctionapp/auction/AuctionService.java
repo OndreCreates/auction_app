@@ -1,8 +1,11 @@
 package com.ondrecreates.auctionapp.auction;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -21,5 +24,9 @@ public class AuctionService {
     public Auction getById(Long id) {
         return auctionRepository.findById(id)
                 .orElseThrow(() -> new AuctionNotFoundException(id));
+    }
+
+    public List<Auction> getAll() {
+        return auctionRepository.findAll(Sort.by(Sort.Direction.DESC, "createdAt"));
     }
 }
