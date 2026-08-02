@@ -33,11 +33,13 @@ public class SecurityConfig {
         return http.build();
     }
 
-    // The Next.js frontend runs on a different origin (localhost:3000) than this API.
+    // The Next.js frontend runs on a different origin than this API: :3000 for `npm run
+    // dev`, :3002 in docker-compose (:3000 is taken by identity_server_app's demo-client
+    // on this machine).
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of("http://localhost:3000"));
+        config.setAllowedOrigins(List.of("http://localhost:3000", "http://localhost:3002"));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("Authorization", "Content-Type"));
 

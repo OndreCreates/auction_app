@@ -20,4 +20,8 @@ COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 EXPOSE 3000
 ENV PORT=3000
+# Docker auto-injects HOSTNAME=<container id>; Next's standalone server binds to that
+# literal value instead of all interfaces, and this app has no route handlers building
+# absolute URLs from request.url, so overriding it to 0.0.0.0 has no other side effect here.
+ENV HOSTNAME=0.0.0.0
 CMD ["node", "server.js"]

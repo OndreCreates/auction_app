@@ -18,8 +18,8 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
-        // Same origin restriction defaults to same-origin only, which blocks the
-        // Next.js frontend (localhost:3000) connecting to this backend (localhost:8090).
-        registry.addEndpoint("/ws").setAllowedOrigins("http://localhost:3000");
+        // Same-origin default blocks the Next.js frontend connecting from a different
+        // origin: :3000 for `npm run dev`, :3002 in docker-compose (see SecurityConfig).
+        registry.addEndpoint("/ws").setAllowedOrigins("http://localhost:3000", "http://localhost:3002");
     }
 }

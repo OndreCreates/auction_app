@@ -18,5 +18,38 @@ services:
       timeout: 5s
       retries: 10
 
+  backend:
+    build: .
+    container_name: auction-app-backend
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      DATASOURCE_URL: jdbc:mysql://mysql:3306/auction_db
+      DATASOURCE_USERNAME: auction_user
+      DATASOURCE_PASSWORD: auction_password
+      # identity_server_app runs as its own stack; host.docker.internal reaches it on the
+      # host machine (Docker Desktop). Override if it's reachable another way.
+      JWKS_URI: ${JWKS_URI:-http://host.docker.internal:9000/oauth2/jwks}
+    ports:
+      - "8090:8090"
+
+  frontend:
+    build: ./frontend
+    container_name: auction-app-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    environment:
+      # NEXT_PUBLIC_* vars are baked into the client bundle at build time, not read at
+      # container start - setting them here would be a no-op. Their defaults in
+      # lib/config.ts (http://localhost:8090) already match what the browser needs.
+      API_URL: http://backend:8090
+    ports:
+      # :3000 is identity_server_app's demo-client on this machine; :3001 is
+      # incident_management_system_app's admin panel - :3002 is next in line.
+      - "3002:3000"
+
 volumes:
   mysql_data:
