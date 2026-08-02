@@ -18,6 +18,8 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
-        registry.addEndpoint("/ws");
+        // Same origin restriction defaults to same-origin only, which blocks the
+        // Next.js frontend (localhost:3000) connecting to this backend (localhost:8090).
+        registry.addEndpoint("/ws").setAllowedOrigins("http://localhost:3000");
     }
 }
