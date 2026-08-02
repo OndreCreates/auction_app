@@ -20,8 +20,11 @@ interface UseAuctionSocketOptions {
 export function useAuctionSocket(auctionId: number, { onBid, onClosed }: UseAuctionSocketOptions) {
   const onBidRef = useRef(onBid);
   const onClosedRef = useRef(onClosed);
-  onBidRef.current = onBid;
-  onClosedRef.current = onClosed;
+
+  useEffect(() => {
+    onBidRef.current = onBid;
+    onClosedRef.current = onClosed;
+  });
 
   useEffect(() => {
     const client = new Client({

@@ -6,13 +6,15 @@ export default async function AuctionDetailPage({ params }: { params: Promise<{ 
   const { id } = await params;
   const auctionId = Number(id);
 
+  let auction;
   try {
-    const auction = await getAuction(auctionId);
-    return <AuctionDetail initialAuction={auction} />;
+    auction = await getAuction(auctionId);
   } catch (error) {
     if (error instanceof ApiError && error.status === 404) {
       notFound();
     }
     throw error;
   }
+
+  return <AuctionDetail initialAuction={auction} />;
 }
