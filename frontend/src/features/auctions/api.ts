@@ -1,4 +1,4 @@
-import { API_URL } from "@/lib/config";
+import { API_URL, PUBLIC_API_URL } from "@/lib/config";
 import type { Auction, Bid } from "./types";
 
 export class ApiError extends Error {
@@ -28,7 +28,7 @@ export function getAuction(id: number): Promise<Auction> {
 }
 
 export function placeBid(token: string, auctionId: number, amount: number): Promise<Bid> {
-  return fetch(`${API_URL}/auctions/${auctionId}/bids`, {
+  return fetch(`${PUBLIC_API_URL}/auctions/${auctionId}/bids`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
