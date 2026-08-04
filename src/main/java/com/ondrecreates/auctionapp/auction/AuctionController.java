@@ -16,10 +16,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/auctions")
@@ -27,7 +24,7 @@ import java.util.stream.Collectors;
 public class AuctionController {
 
     private final AuctionService auctionService;
-    private final AuctionImageRepository auctionImageRepository;
+    private final AuctionResponseAssembler auctionResponseAssembler;
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
@@ -50,27 +47,11 @@ public class AuctionController {
 
     @GetMapping("/{id}")
     public AuctionResponse getById(@PathVariable Long id) {
-        Auction auction = auctionService.getById(id);
-        List<String> imageUrls = auctionImageRepository.findByAuctionIdOrderBySortOrderAsc(id).stream()
-                .map(AuctionImage::getUrl)
-                .toList();
-        return AuctionResponse.from(auction, imageUrls);
+        return auctionResponseAssembler.toResponse(auctionService.getById(id));
     }
 
     @GetMapping
     public List<AuctionResponse> getAll(@RequestParam(required = false) String category) {
-        List<Auction> auctions = auctionService.getAll(category);
-
-        Map<Long, List<String>> imageUrlsByAuctionId = auctionImageRepository
-                .findByAuctionIdInOrderByAuctionIdAscSortOrderAsc(auctions.stream().map(Auction::getId).toList())
-                .stream()
-                .collect(Collectors.groupingBy(
-                        AuctionImage::getAuctionId,
-                        LinkedHashMap::new,
-                        Collectors.mapping(AuctionImage::getUrl, Collectors.toList())));
-
-        return auctions.stream()
-                .map(auction -> AuctionResponse.from(auction, imageUrlsByAuctionId.getOrDefault(auction.getId(), List.of())))
-                .toList();
+        return auctionResponseAssembler.toResponseList(auctionService.getAll(category));
     }
 }

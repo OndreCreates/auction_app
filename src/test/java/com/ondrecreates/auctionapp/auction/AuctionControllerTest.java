@@ -37,7 +37,7 @@ class AuctionControllerTest {
     private AuctionService auctionService;
 
     @MockitoBean
-    private AuctionImageRepository auctionImageRepository;
+    private AuctionResponseAssembler auctionResponseAssembler;
 
     @Test
     void create_withoutToken_isUnauthorized() throws Exception {
