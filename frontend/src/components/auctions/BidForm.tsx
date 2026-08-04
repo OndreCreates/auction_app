@@ -16,13 +16,11 @@ export function BidForm({ auction }: { auction: Auction }) {
   const [success, setSuccess] = useState(false);
 
   if (auction.status !== "ACTIVE") {
-    return <p className="text-sm text-neutral-500">This auction is closed.</p>;
+    return <p className="text-sm text-taupe">This auction is closed.</p>;
   }
 
   if (!token) {
-    return (
-      <p className="text-sm text-neutral-500">Sign in with an access token above to place a bid.</p>
-    );
+    return <p className="text-sm text-taupe">Sign in with an access token above to place a bid.</p>;
   }
 
   async function handleSubmit(event: FormEvent) {
@@ -63,16 +61,20 @@ export function BidForm({ auction }: { auction: Auction }) {
           step="0.01"
           value={amount}
           onChange={(event) => setAmount(event.target.value)}
-          className="w-full rounded-md border border-neutral-700 bg-neutral-900 px-3 py-2 text-neutral-100 focus:border-amber-400 focus:outline-none"
+          className="w-full rounded-sm border border-taupe/30 bg-white/60 px-3 py-2 text-forest focus:border-gold focus:outline-none"
         />
-        <p className="mt-1.5 text-xs text-neutral-500">Minimum bid: {formatPrice(minBid)}</p>
-        {error && <p className="mt-2 text-sm text-red-400">{error}</p>}
-        {success && <p className="mt-2 text-sm text-emerald-400">Bid placed.</p>}
+        <p className="mt-1.5 text-xs text-taupe">Minimum bid: {formatPrice(minBid)}</p>
+        {error && (
+          <p className="mt-2 rounded-sm border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700">
+            {error}
+          </p>
+        )}
+        {success && <p className="mt-2 text-sm text-emerald-700">Bid placed.</p>}
       </div>
       <button
         type="submit"
         disabled={submitting}
-        className="rounded-md bg-amber-400 px-5 py-2 font-medium text-neutral-950 transition-colors hover:bg-amber-300 disabled:cursor-not-allowed disabled:opacity-50"
+        className="rounded-sm bg-gold px-5 py-2 font-medium text-forest transition-colors hover:bg-gold-dark disabled:cursor-not-allowed disabled:opacity-50"
       >
         {submitting ? "Placing…" : "Place bid"}
       </button>
