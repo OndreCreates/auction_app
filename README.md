@@ -1,9 +1,11 @@
 # Auction App
 
-Real-time online aukce postavená na Spring Bootu 4 a Next.js. Backend obsluhuje
+Real-time aukční dům postavený na Spring Bootu 4 a Next.js. Backend obsluhuje
 vytváření aukcí a dražení s optimistickým zamykáním proti souběžným bidům,
-automatické uzavírání aukcí po vypršení času a živé přenosy přes WebSocket/STOMP.
-Frontend je tenký klient nad tímto API se stejnými živými aktualizacemi.
+automatické uzavírání aukcí po vypršení času, živé přenosy přes WebSocket/STOMP,
+kategorie a rozšířený produktový model, watchlist s notifikacemi na nový bid
+a profil s historií bidů a výher. Frontend je Next.js klient s brand identitou
+(kategorie, watchlist, profil, živé ceny) nad tímto API.
 
 Portfolio projekt zaměřený na jádro problému, který dražení skutečně řeší:
 souběžnost. Kdokoliv umí naklikat formulář na CRUD; ukázat, že dva bidy
@@ -16,22 +18,30 @@ u pohovoru obhajovat.
 ┌──────────────┐   REST + WebSocket    ┌──────────────────┐      JDBC      ┌───────┐
 │  Next.js UI  │ ─────────────────────►│  Spring Boot API  │ ─────────────►│ MySQL │
 │ (frontend/)  │◄───────────────────── │   (auction-app)   │◄───────────── │       │
-└──────────────┘   STOMP /topic/*      └──────────┬────────┘                └───────┘
-                                                    │ JWKS (JWT validace)
-                                                    ▼
-                                        ┌──────────────────────┐
-                                        │  identity_server_app  │  (samostatný projekt)
-                                        └──────────────────────┘
+└──────────────┘   STOMP /topic/*      └──────┬───────┬────┘                └───────┘
+                                               │       │
+                              JWKS (JWT validace)     │ REST (fire-and-forget)
+                                               ▼       ▼
+                             ┌──────────────────────┐  ┌───────────────────────────┐
+                             │  identity_server_app  │  │ notification_center_app   │
+                             └──────────────────────┘  └───────────────────────────┘
+                                  (samostatný projekt)      (samostatný projekt)
 ```
 
-- **auction-app** (backend) — REST API pro aukce a bidy, optimistické zamykání,
-  scheduler pro automatické uzavírání, STOMP broadcast nového bidu / uzavření
-  aukce, OAuth2 Resource Server ověřující JWT proti `identity_server_app`.
-- **frontend/** — Next.js 16 (App Router, TypeScript, Tailwind). Seznam aukcí,
-  detail s formulářem pro bid, živé ceny přes `@stomp/stompjs`.
-- **MySQL** — jediné úložiště, migrace přes Flyway (`V1`–`V3`).
+- **auction-app** (backend) — REST API pro aukce, bidy, kategorie, watchlist
+  a profil; optimistické zamykání, scheduler pro automatické uzavírání, STOMP
+  broadcast nového bidu / uzavření aukce, OAuth2 Resource Server ověřující JWT
+  proti `identity_server_app`.
+- **frontend/** — Next.js 16 (App Router, TypeScript, Tailwind). Domovská
+  stránka s filtrem kategorií, detail s formulářem pro bid a watchlist
+  přepínačem, stránka watchlistu, profil s historií bidů a výher, živé ceny
+  přes `@stomp/stompjs`.
+- **MySQL** — jediné úložiště, migrace přes Flyway (`V1`–`V6`).
 - **identity_server_app** — samostatný OAuth2/OIDC provider (vlastní repo), tady
   se pouze validuje jím vydaný JWT proti jeho JWKS endpointu.
+- **notification_center_app** — samostatný projekt (vlastní repo); dostává
+  fire-and-forget REST volání při novém bidu na sledované aukci. Jeho výpadek
+  nikdy nesmí shodit bid endpoint, viz E2E ověření níže.
 
 ## Tech stack
 
@@ -135,9 +145,23 @@ odjinud. Bez tokenu se dá aukce jen prohlížet.
 - **Žádná stránka pro založení aukce ve frontendu** — backend to umí
   (`POST /auctions`), UI na to podle zadání nebylo v plánu.
 - **Seznam aukcí bez stránkování** — v pořádku pro pár desítek aukcí v dev
-  prostředí, na produkční škále by chtělo stránkování/cursor.
+  prostředí, na produkční škále by chtělo stránkování/cursor. Profil (historie
+  bidů, výhry) stránkování má, protože je to tam explicitní požadavek fáze.
 - **JWT signing key rotace, MFA a podobné bezpečnostní featury** jsou v
   gesci `identity_server_app`, ne tohohle projektu.
+
+Vyřazeno z rozsahu vědomě, ne opomenutím — nepřidává technickou hloubku k tomu,
+co má projekt demonstrovat (real-time + concurrency), a každé je samo o sobě
+jiná doména:
+
+- **Escrow / platby** — fintech doména sama o sobě (PCI compliance, držení
+  cizích peněz, 3rd party integrace).
+- **Invite-only přístup / membership** — komplikuje auth, který už řeší
+  `identity_server_app`, bez nového technického příběhu.
+- **Doprava a pojištění** — logistická doména, nulová souvislost s
+  real-time/concurrency tématem projektu.
+- **Zákaznická podpora VIP 24/7** — jiná doména (ticketing systém), navíc
+  neposkytnutelná v portfolio demu.
 
 ## E2E ověření
 
@@ -159,6 +183,13 @@ testy pro každou fázi):
 - **401/409 v UI** — bid formulář ve frontendu byl ručně proklikaný s
   neplatným tokenem (401, jasná hláška) a s částkou pod minimem (400,
   client-side validace bez spoléhání na nativní HTML validaci prohlížeče).
+- **Výpadek `notification_center_app` nezpůsobí selhání bid endpointu** —
+  `WatchlistNotificationListenerTest` ověřuje, že chyba v `NotificationClient`
+  neshodí listener; `RestNotificationClient` sám každou chybu za jednotlivého
+  příjemce loguje a polyká (`catch (RestClientException)`), stejně jako
+  `BidBroadcastListener` u WebSocketu. Ručně ověřeno i vypnutím
+  `notification.api-key` — bid projde, jen se zaloguje "skipping watchlist
+  notification".
 - **`docker compose up --build`** — backend a frontend image se sestaví a
   nastartují čistě proti MySQL v témže compose souboru; ověřeno v prohlížeči
   proti kontejnerizovanému frontendu (`http://localhost:3002`) včetně SSR
