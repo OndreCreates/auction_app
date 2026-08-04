@@ -1,5 +1,7 @@
 package com.ondrecreates.auctionapp.auction;
 
+import com.ondrecreates.auctionapp.category.CategoryNotFoundException;
+import com.ondrecreates.auctionapp.category.CategoryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -13,12 +15,28 @@ import java.util.List;
 public class AuctionService {
 
     private final AuctionRepository auctionRepository;
+    private final AuctionImageRepository auctionImageRepository;
+    private final CategoryRepository categoryRepository;
 
     @Transactional
-    public Auction create(Auction auction) {
+    public Auction create(Auction auction, List<String> imageUrls) {
+        if (!categoryRepository.existsById(auction.getCategoryId())) {
+            throw new CategoryNotFoundException(auction.getCategoryId());
+        }
+
         auction.setCurrentPrice(auction.getStartingPrice());
         auction.setStatus(AuctionStatus.ACTIVE);
-        return auctionRepository.save(auction);
+        Auction savedAuction = auctionRepository.save(auction);
+
+        for (int i = 0; i < imageUrls.size(); i++) {
+            auctionImageRepository.save(AuctionImage.builder()
+                    .auctionId(savedAuction.getId())
+                    .url(imageUrls.get(i))
+                    .sortOrder(i)
+                    .build());
+        }
+
+        return savedAuction;
     }
 
     public Auction getById(Long id) {
@@ -26,7 +44,15 @@ public class AuctionService {
                 .orElseThrow(() -> new AuctionNotFoundException(id));
     }
 
-    public List<Auction> getAll() {
-        return auctionRepository.findAll(Sort.by(Sort.Direction.DESC, "createdAt"));
+    public List<Auction> getAll(String categorySlug) {
+        Sort sort = Sort.by(Sort.Direction.DESC, "createdAt");
+        if (categorySlug == null) {
+            return auctionRepository.findAll(sort);
+        }
+
+        Long categoryId = categoryRepository.findBySlug(categorySlug)
+                .orElseThrow(() -> new CategoryNotFoundException(categorySlug))
+                .getId();
+        return auctionRepository.findByCategoryId(categoryId, sort);
     }
 }

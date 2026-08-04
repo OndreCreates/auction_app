@@ -62,6 +62,18 @@ public class Auction {
     @Column(name = "end_time", nullable = false)
     private LocalDateTime endTime;
 
+    // Nullable at the DB level for rows that predate categories; every new auction is
+    // required to set it (see CreateAuctionRequest). Plain id, not a JPA relationship -
+    // same pattern as Bid.auctionId, avoids lazy-loading surprises.
+    @Column(name = "category_id")
+    private Long categoryId;
+
+    @Column(columnDefinition = "TEXT")
+    private String provenance;
+
+    @Column(nullable = false)
+    private boolean verified;
+
     // Optimistic lock: concurrent bids race to update the same row; the loser gets
     // ObjectOptimisticLockingFailureException instead of silently overwriting a newer bid.
     @Version

@@ -5,12 +5,17 @@ import com.ondrecreates.auctionapp.auction.AuctionStatus;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 public record AuctionResponse(
         Long id,
         String title,
         String description,
         String sellerId,
+        Long categoryId,
+        String provenance,
+        boolean verified,
+        List<String> imageUrls,
         BigDecimal startingPrice,
         BigDecimal minIncrement,
         BigDecimal currentPrice,
@@ -19,12 +24,16 @@ public record AuctionResponse(
         LocalDateTime endTime
 ) {
 
-    public static AuctionResponse from(Auction auction) {
+    public static AuctionResponse from(Auction auction, List<String> imageUrls) {
         return new AuctionResponse(
                 auction.getId(),
                 auction.getTitle(),
                 auction.getDescription(),
                 auction.getSellerId(),
+                auction.getCategoryId(),
+                auction.getProvenance(),
+                auction.isVerified(),
+                imageUrls,
                 auction.getStartingPrice(),
                 auction.getMinIncrement(),
                 auction.getCurrentPrice(),

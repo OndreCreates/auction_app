@@ -24,7 +24,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class AuctionControllerTest {
 
     private static final String VALID_BODY = """
-            {"title":"Vintage Camera","startingPrice":100.00,"minIncrement":5.00,
+            {"title":"Vintage Camera","categoryId":1,"startingPrice":100.00,"minIncrement":5.00,
              "startTime":"%s","endTime":"%s"}
             """.formatted(
                     LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
@@ -36,6 +36,9 @@ class AuctionControllerTest {
     @MockitoBean
     private AuctionService auctionService;
 
+    @MockitoBean
+    private AuctionImageRepository auctionImageRepository;
+
     @Test
     void create_withoutToken_isUnauthorized() throws Exception {
         mockMvc.perform(post("/auctions")
@@ -46,7 +49,7 @@ class AuctionControllerTest {
 
     @Test
     void create_withToken_usesJwtSubjectAsSellerId() throws Exception {
-        when(auctionService.create(any(Auction.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(auctionService.create(any(Auction.class), any())).thenAnswer(invocation -> invocation.getArgument(0));
 
         mockMvc.perform(post("/auctions")
                         .with(jwt().jwt(builder -> builder.subject("seller@example.com")))

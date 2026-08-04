@@ -3,6 +3,7 @@ package com.ondrecreates.auctionapp.common;
 import com.ondrecreates.auctionapp.auction.AuctionNotFoundException;
 import com.ondrecreates.auctionapp.bid.AuctionNotActiveException;
 import com.ondrecreates.auctionapp.bid.BidTooLowException;
+import com.ondrecreates.auctionapp.category.CategoryNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.ConcurrencyFailureException;
 import org.springframework.http.HttpStatus;
@@ -22,6 +23,12 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(AuctionNotFoundException.class)
     public ResponseEntity<ApiError> handleNotFound(AuctionNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(new ApiError(Instant.now(), 404, "Not Found", ex.getMessage(), null));
+    }
+
+    @ExceptionHandler(CategoryNotFoundException.class)
+    public ResponseEntity<ApiError> handleCategoryNotFound(CategoryNotFoundException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(new ApiError(Instant.now(), 404, "Not Found", ex.getMessage(), null));
     }
